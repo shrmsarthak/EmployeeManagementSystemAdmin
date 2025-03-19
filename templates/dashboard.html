@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="row text-center">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100" style="width: 26rem;">
+                <div class="card-header">
+                    <h5>Add Employee</h5>
+                </div>
+                <div class="card-body">
+                    <p>Add a New Employee to System.</p>
+                    <a href="add_employee" class="btn btn-primary">Add</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100" style="width: 26rem;">
+                <div class="card-header">
+                    <h5>View Employee</h5>
+                </div>
+                <div class="card-body">
+                    <p>Efficiently View Employee Data and Details.</p>
+                    <a href="view_employee" class="btn btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

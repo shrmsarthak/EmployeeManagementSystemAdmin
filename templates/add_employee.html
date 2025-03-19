@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4>Add New Employee</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Employee Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3 d-flex">
+                            <div class="me-2" style="width: 50%;">
+                                <label for="text" class="form-label">Employee Code</label>
+                                <input type="text" class="form-control" id="text" name="text" required>
+                            </div>
+                            <div style="width: 50%;">
+                                <label for="text" class="form-label">Employee Unit</label>
+                                <input type="text" class="form-control" id="text" name="text" required>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-flex">
+                            <div class="me-2" style="width: 50%;">
+                                <label for="text" class="form-label">Latitude</label>
+                                <input type="text" class="form-control" id="text" name="text" required>
+                            </div>
+                            <div style="width: 50%;">
+                                <label for="text" class="form-label">Longitude</label>
+                                <input type="text" class="form-control" id="text" name="text" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if success %}
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Employee Added',
+        text: 'Employee have been added successfully.',
+        confirmButtonText: 'OK'
+    });
+</script>
+{% endif %}
+
+{% if error %}
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error While Adding',
+        text: 'Some Error While Adding New Employee.',
+        confirmButtonText: 'OK'
+    });
+</script>
+{% endif %}
+
+{% endblock %}
+
