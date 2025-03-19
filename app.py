@@ -9,13 +9,23 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
-# Load Firebase credentials from .env file
-firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
+import base64
 
-# Initialize Firebase Admin SDK
-cred = credentials.Certificate(firebase_cred)
+
+firebase_config = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
+
+# Try loading directly as JSON
+try:
+    firebase_config_json = json.loads(firebase_config)
+except json.JSONDecodeError:
+    import base64
+    decoded_key = base64.b64decode(firebase_config).decode('utf-8')
+    firebase_config_json = json.loads(decoded_key)
+
+# Initialize Firebase
+cred = credentials.Certificate(firebase_config_json)
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'  # Replace with your Firebase Realtime Database URL
+    'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'
 })
 
 # Initialize Flask app
