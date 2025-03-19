@@ -3,3 +3,10 @@ __pycache__/
 node_modules/
 venv/
 .env
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.bak
+*.swp
+.mypy_cache/
