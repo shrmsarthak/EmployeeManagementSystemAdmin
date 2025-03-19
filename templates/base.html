@@ -64,7 +64,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/">Home</a>
+                        <a class="nav-link active" href="/dashboard">Home</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="#">About</a>
@@ -93,5 +93,37 @@
         <p>&copy; 2025 Employee Management System | All Rights Reserved</p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                Swal.fire({
+                    icon: '{{ category }}',  // 'success', 'error', 'info', 'warning'
+                    title: '{{ message }}',
+                    timer: 3000,  // Auto-close after 3 seconds
+                    showConfirmButton: false
+                });
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</script>
+
 </body>
 </html>
+
+<script>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                Swal.fire({
+                    icon: '{{ category }}',  // 'success', 'error', 'info', 'warning'
+                    title: '{{ message }}',
+                    timer: 3000,  // Auto-close after 3 seconds
+                    showConfirmButton: false
+                });
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</script>
+

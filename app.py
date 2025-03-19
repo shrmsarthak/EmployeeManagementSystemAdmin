@@ -1,12 +1,30 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
+import os
+import firebase_admin
+from firebase_admin import credentials, db
+import json
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# Load Firebase credentials from .env file
+firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate(firebase_cred)
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'  # Replace with your Firebase Realtime Database URL
+})
+
+# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this to a secure random key
 
 # Mock admin credentials (you can replace these with a database in the future)
 admin_username = 'admin'
-admin_password = generate_password_hash('admin') # Hashed password
+admin_password = generate_password_hash('admin')  # Hashed password
 
 @app.route('/')
 def home():
@@ -29,24 +47,81 @@ def admin():
 
     return render_template('admin.html', error_message=error_message)
 
-
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
     return render_template('dashboard.html')
 
-@app.route('/add_employee')
+@app.route('/add_employee', methods=['GET', 'POST'])
 def add_employee():
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
+
+    if request.method == 'POST':
+        employee_name = request.form['name']
+        employee_phone = request.form['phone']
+        employee_code = request.form['employeecode']
+        employee_unit = request.form['employeeunit']
+        employee_latitude = request.form['latitude']
+        employee_longitude = request.form['longitude']
+
+        
+        new_employee = {
+            'name': employee_name,
+            'phone': employee_phone,
+            'employee_code': employee_code,
+            'employee_unit': employee_unit,
+            'employee_latitude': employee_latitude,
+            'employee_longitude': employee_longitude
+        }
+
+        try:
+            ref = db.reference(f'/employees/{employee_phone}')
+            existing_employee = ref.get()  # Check if employee already exists
+
+            if existing_employee:
+                flash('Employee with this number already exists!', 'warning')
+            else:
+                ref.set(new_employee)
+                flash('Employee added successfully!', 'success')
+            
+        except Exception as e:
+            flash('Failed to add employee!', 'danger')
+
     return render_template('add_employee.html')
+
+
 
 @app.route('/view_employee')
 def view_employee():
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
-    return render_template('view_employee.html')
+    
+    # Get all employee data from Firebase Realtime Database
+    ref = db.reference('employees')
+    employees = ref.get()  # Get all employee records
+    
+    # Pass employee data to the template
+    return render_template('view_employee.html', employees=employees)
+
+@app.route('/delete_employee/<phone>', methods=['POST'])
+def delete_employee(phone):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    try:
+        ref = db.reference(f'/employees/{phone}')
+        if ref.get():
+            ref.delete()
+            flash('Employee deleted successfully!', 'success')
+        else:
+            flash('Employee not found!', 'warning')
+    except Exception as e:
+        flash('Failed to delete employee!', 'danger')
+
+    return redirect(url_for('view_employee'))
+
 
 @app.route('/logout')
 def logout():
