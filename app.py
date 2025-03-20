@@ -130,6 +130,53 @@ def view_location(latitude, longitude):
         return redirect(url_for('admin'))
     return render_template('view_location.html', latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
+@app.route('/edit_employee/<phone>', methods=['GET', 'POST'])
+def edit_employee(phone):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    ref = db.reference(f'/employees/{phone}')
+    employee = ref.get()
+
+    if not employee:
+        flash('Employee not found!', 'warning')
+        return redirect(url_for('view_employee'))
+
+    if request.method == 'POST':
+        # Get updated details from the form
+        updated_employee = {
+            'name': request.form['name'],
+            'phone': request.form['phone'],
+            'employee_code': request.form['employeecode'],
+            'employee_unit': request.form['employeeunit'],
+            'employee_latitude': request.form['latitude'],
+            'employee_longitude': request.form['longitude']
+        }
+
+        try:
+            # Update the employee details in Firebase
+            ref.set(updated_employee)
+            flash('Employee details updated successfully!', 'success')
+        except Exception as e:
+            flash('Failed to update employee!', 'danger')
+
+        return redirect(url_for('view_employee'))
+
+    return render_template('edit_employee.html', employee=employee, phone=phone)
+
+@app.route('/view_all_locations')
+def view_all_locations():
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    # Get all employee data from Firebase
+    ref = db.reference('employees')
+    employees = ref.get()
+
+    # Pass employee data to the template
+    return render_template('view_all_locations.html', employees=employees, api_key=google_maps_api_key)
+
+
 
 @app.route('/logout')
 def logout():
