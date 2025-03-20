@@ -61,7 +61,6 @@ def add_employee():
         return redirect(url_for('admin'))
 
     if request.method == 'POST':
-        employee_email = request.form['email']
         employee_name = request.form['name']
         employee_phone = request.form['phone']
         employee_code = request.form['employeecode']
@@ -71,7 +70,6 @@ def add_employee():
 
         
         new_employee = {
-            'email': employee_email,
             'name': employee_name,
             'phone': employee_phone,
             'employee_code': employee_code,
@@ -81,7 +79,7 @@ def add_employee():
         }
 
         try:
-            ref = db.reference(f'/employees/{employee_email.split("@")[0]}')
+            ref = db.reference(f'/employees/{employee_phone}')
             existing_employee = ref.get()  # Check if employee already exists
 
             if existing_employee:
@@ -115,7 +113,7 @@ def delete_employee(phone):
         return redirect(url_for('admin'))
 
     try:
-        ref = db.reference(f'/employees/{employee_email.split("@")[0]}')
+        ref = db.reference(f'/employees/{phone}')
         if ref.get():
             ref.delete()
             flash('Employee deleted successfully!', 'success')
