@@ -11,6 +11,8 @@ load_dotenv()
 
 # Load Firebase credentials from .env file
 firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
+google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+
 
 # Initialize Firebase Admin SDK
 cred = credentials.Certificate(firebase_cred)
@@ -121,6 +123,12 @@ def delete_employee(phone):
         flash('Failed to delete employee!', 'danger')
 
     return redirect(url_for('view_employee'))
+
+@app.route('/view_location/<latitude>/<longitude>')
+def view_location(latitude, longitude):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+    return render_template('view_location.html', latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
 
 @app.route('/logout')

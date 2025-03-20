@@ -23,33 +23,38 @@
                     </thead>
                     <tbody>
                         {% if employees %}
-                            {% for phone, employee in employees.items() %}
-                            <tr>
-                                <td>{{ employee.name }}</td>
-                                <td>{{ employee.phone }}</td>
-                                <td>{{ employee.employee_code }}</td>
-                                <td>{{ employee.employee_unit }}</td>
-                                <td>{{ employee.employee_latitude }}</td>
-                                <td>{{ employee.employee_longitude }}</td>
-                                <td>
-                                    <button 
-                                        class="btn btn-danger btn-sm" 
-                                        onclick="confirmDelete('{{ phone }}')">
-                                        Delete
-                                    </button>
+                        {% for phone, employee in employees.items() %}
+                        <tr>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ employee.phone }}</td>
+                            <td>{{ employee.employee_code }}</td>
+                            <td>{{ employee.employee_unit }}</td>
+                            <td>{{ employee.employee_latitude }}</td>
+                            <td>{{ employee.employee_longitude }}</td>
+                            <td>
+                                <!-- Delete Button -->
+                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ phone }}')">
+                                    Delete
+                                </button>
 
-                                    <form id="deleteForm-{{ phone }}" 
-                                          method="POST" 
-                                          action="{{ url_for('delete_employee', phone=phone) }}" 
-                                          style="display: none;">
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                                <!-- View Button -->
+                                <!-- View Button -->
+                                <a href="{{ url_for('view_location', latitude=employee.employee_latitude, longitude=employee.employee_longitude) }}"
+                                    class="btn btn-info btn-sm">
+                                    View
+                                </a>
+
+
+                                <form id="deleteForm-{{ phone }}" method="POST"
+                                    action="{{ url_for('delete_employee', phone=phone) }}" style="display: none;">
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
                         {% else %}
-                            <tr>
-                                <td colspan="7" class="text-center">No employees found.</td>
-                            </tr>
+                        <tr>
+                            <td colspan="7" class="text-center">No employees found.</td>
+                        </tr>
                         {% endif %}
                     </tbody>
                 </table>
@@ -58,22 +63,29 @@
     </div>
 </div>
 
+<!-- SweetAlert for Delete Confirmation -->
 <script>
-function confirmDelete(phone) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This action cannot be undone!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById(`deleteForm-${phone}`).submit();
-        }
-    });
-}
+    function confirmDelete(phone) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`deleteForm-${phone}`).submit();
+            }
+        });
+    }
+
+    // View Location using Google Maps
+    function viewLocation(latitude, longitude) {
+        const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        window.open(url, '_blank');
+    }
 </script>
 
 {% endblock %}
