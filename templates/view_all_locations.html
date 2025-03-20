@@ -15,30 +15,53 @@
 <script>
     function initMap() {
         const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 4,
-            center: { lat: 20.5937, lng: 78.9629 },  // Center of India
+            zoom: 4,  // Default zoom level (will be overridden)
+            center: { lat: 20.5937, lng: 78.9629 } // Default center (India)
         });
 
-        const employees = {{ employees | tojson }};
+        const employees = {{ employees | tojson | safe }};
+        const bounds = new google.maps.LatLngBounds(); // Create bounds object
+
+        let hasValidLocation = false; // Track if at least one valid location exists
 
         for (const phone in employees) {
             const employee = employees[phone];
             const lat = parseFloat(employee.employee_latitude);
             const lng = parseFloat(employee.employee_longitude);
-            const position = { lat: lat, lng: lng };
-            const marker = new google.maps.Marker({
-                position: position,
-                map: map,
-                title: `${employee.name} - ${employee.phone}`,
-            });
 
-            const infowindow = new google.maps.InfoWindow({
-                content: `<b>${employee.name}</b><br>Phone: ${employee.phone}<br>Code: ${employee.employee_code}<br>Unit: ${employee.employee_unit}`,
-            });
+            if (!isNaN(lat) && !isNaN(lng)) {
+                hasValidLocation = true;
+                const position = { lat: lat, lng: lng };
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: `${employee.name} - ${employee.phone}`,
+                });
 
-            marker.addListener("click", () => {
-                infowindow.open(map, marker);
-            });
+                const infowindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="font-size: 14px; line-height: 1.5;">
+                            <b>${employee.name}</b><br>
+                            <strong>Phone:</strong> ${employee.phone}<br>
+                            <strong>Code:</strong> ${employee.employee_code}<br>
+                            <strong>Unit:</strong> ${employee.employee_unit}
+                        </div>
+                    `,
+                });
+
+                marker.addListener("click", () => {
+                    infowindow.open(map, marker);
+                });
+
+                bounds.extend(position); // Extend bounds to include this marker
+            }
+        }
+
+        // If at least one valid location exists, fit map to markers
+        if (hasValidLocation) {
+            map.fitBounds(bounds);
+        } else {
+            console.warn("No valid employee locations available.");
         }
     }
 </script>
