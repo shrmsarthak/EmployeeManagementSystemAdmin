@@ -15,6 +15,7 @@
             
                     <thead>
                         <tr>
+                            <th>Employee Email</th>
                             <th>Employee Name</th>
                             <th>Employee Phone</th>
                             <th>Employee Code</th>
@@ -26,8 +27,9 @@
                     </thead>
                     <tbody>
                         {% if employees %}
-                        {% for phone, employee in employees.items() %}
+                        {% for email, employee in employees.items() %}
                         <tr>
+                            <td>{{ employee.email }}</td>
                             <td>{{ employee.name }}</td>
                             <td>{{ employee.phone }}</td>
                             <td>{{ employee.employee_code }}</td>
@@ -36,7 +38,7 @@
                             <td>{{ employee.employee_longitude }}</td>
                             <td>
                                 <!-- Delete Button -->
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ phone }}')">
+                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ email }}')">
                                     Delete
                                 </button>
 
@@ -47,12 +49,12 @@
                                 </a>
 
                                 <!-- Edit Button -->
-                                <a href="{{ url_for('edit_employee', phone=phone) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ url_for('edit_employee', email=email) }}" class="btn btn-warning btn-sm">
                                     Edit
                                 </a>
 
-                                <form id="deleteForm-{{ phone }}" method="POST"
-                                    action="{{ url_for('delete_employee', phone=phone) }}" style="display: none;">
+                                <form id="deleteForm-{{ email }}" method="POST"
+                                    action="{{ url_for('delete_employee', email=email) }}" style="display: none;">
                                 </form>
                             </td>
                         </tr>
@@ -71,7 +73,7 @@
 
 <!-- SweetAlert for Delete Confirmation -->
 <script>
-    function confirmDelete(phone) {
+    function confirmDelete(email) {
         Swal.fire({
             title: 'Are you sure?',
             text: "This action cannot be undone!",
@@ -82,7 +84,7 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById(`deleteForm-${phone}`).submit();
+                document.getElementById(`deleteForm-${email}`).submit();
             }
         });
     }

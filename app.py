@@ -61,6 +61,7 @@ def add_employee():
         return redirect(url_for('admin'))
 
     if request.method == 'POST':
+        employee_email = request.form['email']
         employee_name = request.form['name']
         employee_phone = request.form['phone']
         employee_code = request.form['employeecode']
@@ -70,6 +71,7 @@ def add_employee():
 
         
         new_employee = {
+            'email': employee_email,
             'name': employee_name,
             'phone': employee_phone,
             'employee_code': employee_code,
@@ -79,7 +81,7 @@ def add_employee():
         }
 
         try:
-            ref = db.reference(f'/employees/{employee_phone}')
+            ref = db.reference(f'/employees/{employee_email.split("@")[0]}')
             existing_employee = ref.get()  # Check if employee already exists
 
             if existing_employee:
@@ -107,13 +109,13 @@ def view_employee():
     # Pass employee data to the template
     return render_template('view_employee.html', employees=employees)
 
-@app.route('/delete_employee/<phone>', methods=['POST'])
-def delete_employee(phone):
+@app.route('/delete_employee/<email>', methods=['POST'])
+def delete_employee(email):
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
 
     try:
-        ref = db.reference(f'/employees/{phone}')
+        ref = db.reference(f'/employees/{email}')
         if ref.get():
             ref.delete()
             flash('Employee deleted successfully!', 'success')
@@ -130,12 +132,12 @@ def view_location(latitude, longitude):
         return redirect(url_for('admin'))
     return render_template('view_location.html', latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
-@app.route('/edit_employee/<phone>', methods=['GET', 'POST'])
-def edit_employee(phone):
+@app.route('/edit_employee/<email>', methods=['GET', 'POST'])
+def edit_employee(email):
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
 
-    ref = db.reference(f'/employees/{phone}')
+    ref = db.reference(f'/employees/{email}')
     employee = ref.get()
 
     if not employee:
@@ -145,6 +147,7 @@ def edit_employee(phone):
     if request.method == 'POST':
         # Get updated details from the form
         updated_employee = {
+            'email': request.form['email'],
             'name': request.form['name'],
             'phone': request.form['phone'],
             'employee_code': request.form['employeecode'],
