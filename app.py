@@ -165,7 +165,7 @@ def edit_employee(email):
 
         return redirect(url_for('view_employee'))
 
-    return render_template('edit_employee.html', employee=employee, phone=phone)
+    return render_template('edit_employee.html', employee=employee, email=email)
 
 @app.route('/view_all_locations')
 def view_all_locations():
