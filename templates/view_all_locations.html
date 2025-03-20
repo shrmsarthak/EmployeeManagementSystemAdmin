@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row text-center justify-content-center">
+        <div class="col-12">
+            <div class="card p-4 bg-dark text-white">
+                <h4 class="mb-3">All Employee Locations</h4>
+                <div id="map" style="height: 600px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initMap() {
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 4,
+            center: { lat: 20.5937, lng: 78.9629 },  // Center of India
+        });
+
+        const employees = {{ employees | tojson }};
+
+        for (const phone in employees) {
+            const employee = employees[phone];
+            const lat = parseFloat(employee.employee_latitude);
+            const lng = parseFloat(employee.employee_longitude);
+            const position = { lat: lat, lng: lng };
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: `${employee.name} - ${employee.phone}`,
+            });
+
+            const infowindow = new google.maps.InfoWindow({
+                content: `<b>${employee.name}</b><br>Phone: ${employee.phone}<br>Code: ${employee.employee_code}<br>Unit: ${employee.employee_unit}`,
+            });
+
+            marker.addListener("click", () => {
+                infowindow.open(map, marker);
+            });
+        }
+    }
+</script>
+
+<!-- Load Google Maps API -->
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap">
+</script>
+
+{% endblock %}
