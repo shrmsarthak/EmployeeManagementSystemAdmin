@@ -68,6 +68,7 @@
 </div>
 
 <!-- JavaScript to Display Map and Go Back -->
+<!-- JavaScript to Display Map and Go Back -->
 <script>
     function showMap(latitude, longitude) {
         // Hide the table and show the map container
@@ -98,6 +99,82 @@
         };
     }
 
+    // Function to view all locations on the map for the selected date
+
+function viewAllLocations() {
+    // Get the selected date
+    const selectedDate = document.getElementById('dateFilter').value;
+
+    // Get all the location data from the table
+    const rows = document.querySelectorAll("tbody tr");
+    const locations = [];
+
+    rows.forEach(row => {
+        const dateText = row.cells[0].innerText;
+        const time = row.cells[1].innerText;
+        const lat = parseFloat(row.cells[2].innerText);
+        const lng = parseFloat(row.cells[3].innerText);
+
+        // Convert the date from the table to a comparable format (yyyy-mm-dd)
+        const dateParts = dateText.split("-");
+        const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+        // Check if the row date matches the selected date
+        if (formattedDate === selectedDate) {
+            locations.push({ date: formattedDate, time, lat, lng });
+        }
+    });
+
+    // If no locations found, show an alert
+    if (locations.length === 0) {
+        alert("No locations found for the selected date.");
+        return;
+    }
+
+    // Hide the date filter and button
+    document.querySelector(".d-flex").style.display = "none";
+
+    // Show the map and hide the table
+    document.querySelector(".table-responsive").style.display = "none";
+    document.getElementById("allLocationsMap").style.display = "block";
+
+    // Initialize the map
+    const map = new google.maps.Map(document.getElementById("allLocationsMap"), {
+        zoom: 15,
+        center: { lat: locations[0].lat, lng: locations[0].lng },
+    });
+
+    // Add markers for all filtered locations
+    locations.forEach((location, index) => {
+        const marker = new google.maps.Marker({
+            position: { lat: location.lat, lng: location.lng },
+            map: map,
+            title: `Time: ${location.time}`,
+            label: `${index + 1}`,
+        });
+
+        // Add an info window to display the time when the marker is clicked
+        const infoWindow = new google.maps.InfoWindow({
+            content: `<p><strong>Time:</strong> ${location.time}</p>`,
+        });
+
+        marker.addListener("click", () => {
+            infoWindow.open(map, marker);
+        });
+    });
+
+    // Handle the browser back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+        // Show the table and the date filter/button, and hide the map container when going back
+        document.querySelector(".table-responsive").style.display = "block";
+        document.getElementById("allLocationsMap").style.display = "none";
+        document.querySelector(".d-flex").style.display = "flex";
+    };
+}
+
+
+
     // Set today's date as the default date
     function setTodayDate() {
         const today = new Date().toISOString().split('T')[0];
@@ -107,6 +184,7 @@
     // Call the function to set the date on page load
     window.onload = setTodayDate;
 </script>
+
 
 
 
