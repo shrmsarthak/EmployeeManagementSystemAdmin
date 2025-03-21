@@ -181,7 +181,27 @@ def view_all_locations():
 
 @app.route('/location_history/<string:email>')
 def location_history(email):
-    return render_template('location_history.html', history=location_history)
+    # Reference to the employee's location tracking data in Firebase
+    employee_ref = db.reference(f'employees/{email}/location_tracking')
+    location_history = employee_ref.get()
+    # Convert nested data (date -> time -> coordinates) to a list for easier rendering
+    history_data = []
+    if location_history:
+        for date, times in location_history.items():
+            for time, coords in times.items():
+                record = {
+                    'date': date,
+                    'time': time,
+                    'latitude': coords.get('latitude'),
+                    'longitude': coords.get('longitude')
+                }
+                history_data.append(record)
+
+    # Sort history data by date and time
+    history_data.sort(key=lambda x: (x['date'], x['time']))
+
+    return render_template('location_history.html', history=history_data, email=email)
+
 
 
 @app.route('/logout')
