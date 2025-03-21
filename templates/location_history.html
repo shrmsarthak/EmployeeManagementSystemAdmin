@@ -15,12 +15,10 @@
                         style="max-width: 150px; font-size: 14px; padding: 4px; border-radius: 5px;">
 
                     <!-- View All Locations Button -->
-                    <button class="btn btn-primary btn-sm" onclick="viewAllLocations()">View All Locations</button>
+                    <button class="btn btn-primary btn-sm" onclick="redirectToAllLocations()">View All Locations</button>
                 </div>
 
-
                 <div id="allLocationsMap" style="height: 500px; width: 100%; display: none;" class="mb-3"></div>
-
 
                 <!-- Map Container -->
                 <div id="mapContainer" style="display: none;" class="mb-3">
@@ -48,8 +46,8 @@
                                 <td class="text-center">{{ record.latitude }}</td>
                                 <td class="text-center">{{ record.longitude }}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-info btn-sm"
-                                        onclick="showMap({{ record.latitude }}, {{ record.longitude }})">View</button>
+                                    <a class="btn btn-info btn-sm" 
+                                       href="{{ url_for('location_map', latitude=record.latitude, longitude=record.longitude) }}">View</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -68,8 +66,17 @@
 </div>
 
 <!-- JavaScript to Display Map and Go Back -->
-<!-- JavaScript to Display Map and Go Back -->
 <script>
+    function redirectToAllLocations() {
+        const selectedDate = document.getElementById('dateFilter').value;
+        if (!selectedDate) {
+            alert("Please select a date.");
+            return;
+        }
+        // Redirect with both email and selected date
+        window.location.href = `/view_all_locations_history/{{ email }}?date=${selectedDate}`;
+    }
+
     function showMap(latitude, longitude) {
         // Hide the table and show the map container
         document.querySelector(".table-responsive").style.display = "none";
@@ -99,81 +106,77 @@
         };
     }
 
-    // Function to view all locations on the map for the selected date
+    function viewAllLocations() {
+        // Get the selected date
+        const selectedDate = document.getElementById('dateFilter').value;
 
-function viewAllLocations() {
-    // Get the selected date
-    const selectedDate = document.getElementById('dateFilter').value;
+        // Get all the location data from the table
+        const rows = document.querySelectorAll("tbody tr");
+        const locations = [];
 
-    // Get all the location data from the table
-    const rows = document.querySelectorAll("tbody tr");
-    const locations = [];
+        rows.forEach(row => {
+            const dateText = row.cells[0].innerText;
+            const time = row.cells[1].innerText;
+            const lat = parseFloat(row.cells[2].innerText);
+            const lng = parseFloat(row.cells[3].innerText);
 
-    rows.forEach(row => {
-        const dateText = row.cells[0].innerText;
-        const time = row.cells[1].innerText;
-        const lat = parseFloat(row.cells[2].innerText);
-        const lng = parseFloat(row.cells[3].innerText);
+            // Convert the date from the table to a comparable format (yyyy-mm-dd)
+            const dateParts = dateText.split("-");
+            const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
 
-        // Convert the date from the table to a comparable format (yyyy-mm-dd)
-        const dateParts = dateText.split("-");
-        const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            // Check if the row date matches the selected date
+            if (formattedDate === selectedDate) {
+                locations.push({ date: formattedDate, time, lat, lng });
+            }
+        });
 
-        // Check if the row date matches the selected date
-        if (formattedDate === selectedDate) {
-            locations.push({ date: formattedDate, time, lat, lng });
+        // If no locations found, show an alert
+        if (locations.length === 0) {
+            alert("No locations found for the selected date.");
+            return;
         }
-    });
 
-    // If no locations found, show an alert
-    if (locations.length === 0) {
-        alert("No locations found for the selected date.");
-        return;
+        // Hide the date filter and button
+        document.querySelector(".d-flex").style.display = "none";
+
+        // Show the map and hide the table
+        document.querySelector(".table-responsive").style.display = "none";
+        document.getElementById("allLocationsMap").style.display = "block";
+
+        // Initialize the map
+        const map = new google.maps.Map(document.getElementById("allLocationsMap"), {
+            zoom: 15,
+            center: { lat: locations[0].lat, lng: locations[0].lng },
+        });
+
+        // Add markers for all filtered locations
+        locations.forEach((location, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: `Time: ${location.time}`,
+                label: `${index + 1}`,
+            });
+
+            // Add an info window to display the time when the marker is clicked
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<p><strong>Time:</strong> ${location.time}</p>`,
+            });
+
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
+        });
+
+        // Handle the browser back button
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            // Show the table and the date filter/button, and hide the map container when going back
+            document.querySelector(".table-responsive").style.display = "block";
+            document.getElementById("allLocationsMap").style.display = "none";
+            document.querySelector(".d-flex").style.display = "flex";
+        };
     }
-
-    // Hide the date filter and button
-    document.querySelector(".d-flex").style.display = "none";
-
-    // Show the map and hide the table
-    document.querySelector(".table-responsive").style.display = "none";
-    document.getElementById("allLocationsMap").style.display = "block";
-
-    // Initialize the map
-    const map = new google.maps.Map(document.getElementById("allLocationsMap"), {
-        zoom: 15,
-        center: { lat: locations[0].lat, lng: locations[0].lng },
-    });
-
-    // Add markers for all filtered locations
-    locations.forEach((location, index) => {
-        const marker = new google.maps.Marker({
-            position: { lat: location.lat, lng: location.lng },
-            map: map,
-            title: `Time: ${location.time}`,
-            label: `${index + 1}`,
-        });
-
-        // Add an info window to display the time when the marker is clicked
-        const infoWindow = new google.maps.InfoWindow({
-            content: `<p><strong>Time:</strong> ${location.time}</p>`,
-        });
-
-        marker.addListener("click", () => {
-            infoWindow.open(map, marker);
-        });
-    });
-
-    // Handle the browser back button
-    history.pushState(null, null, location.href);
-    window.onpopstate = function () {
-        // Show the table and the date filter/button, and hide the map container when going back
-        document.querySelector(".table-responsive").style.display = "block";
-        document.getElementById("allLocationsMap").style.display = "none";
-        document.querySelector(".d-flex").style.display = "flex";
-    };
-}
-
-
 
     // Set today's date as the default date
     function setTodayDate() {
@@ -184,9 +187,6 @@ function viewAllLocations() {
     // Call the function to set the date on page load
     window.onload = setTodayDate;
 </script>
-
-
-
 
 <!-- Load Google Maps API -->
 <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" async defer></script>

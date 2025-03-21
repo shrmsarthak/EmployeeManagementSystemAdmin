@@ -8,6 +8,7 @@ import json
 
 from dotenv import load_dotenv
 load_dotenv()
+from datetime import datetime
 
 # Load Firebase credentials from .env file
 firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
@@ -202,7 +203,47 @@ def location_history(email):
 
     return render_template('location_history.html', history=history_data, email=email, api_key=google_maps_api_key)
 
+@app.route('/location_map')
+def location_map():
+    latitude = request.args.get("latitude")
+    longitude = request.args.get("longitude")
+    return render_template("location_map.html", latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
+@app.route('/view_all_locations_history/<string:email>')
+def view_all_locations_history(email):
+    selected_date = request.args.get('date')
+
+    date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+    formatted_date = date_obj.strftime("%d-%m-%Y")
+
+    # Reference to the employee's location tracking data in Firebase
+    
+    employee_ref = db.reference(f'employees/{email}/location_tracking')
+    location_history = employee_ref.get()
+    
+    print(location_history)
+    # Prepare a list to store location records for the selected date
+    locations = []
+    if location_history:
+        for date, times in location_history.items():
+
+            if date == formatted_date:  # Filter by selected date
+                
+                for time, coords in times.items():
+                    record = {
+                        'latitude': coords.get('latitude'),
+                        'longitude': coords.get('longitude'),
+                        'time': time
+                    }
+                    locations.append(record)
+
+                    
+
+    # If no locations are found for the selected date, display a message (optional)
+    if not locations:
+        flash("No locations found for the selected date.")
+
+    return render_template("view_all_locations_history.html", locations=locations, email=email, api_key=google_maps_api_key)
 
 @app.route('/logout')
 def logout():
