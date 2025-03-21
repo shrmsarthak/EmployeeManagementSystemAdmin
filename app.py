@@ -221,7 +221,7 @@ def view_all_locations_history(email):
     employee_ref = db.reference(f'employees/{email}/location_tracking')
     location_history = employee_ref.get()
     
-    print(location_history)
+    
     # Prepare a list to store location records for the selected date
     locations = []
     if location_history:
