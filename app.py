@@ -179,6 +179,9 @@ def view_all_locations():
     # Pass employee data to the template
     return render_template('view_all_locations.html', employees=employees, api_key=google_maps_api_key)
 
+@app.route('/location_history/<string:email>')
+def location_history(email):
+    return render_template('location_history.html', history=location_history)
 
 
 @app.route('/logout')
