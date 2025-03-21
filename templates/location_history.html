@@ -12,15 +12,23 @@
                     <button class="btn btn-primary btn-sm" onclick="viewAllLocations()">View All Locations</button>
                 </div>
                 <div id="allLocationsMap" style="height: 500px; width: 100%; display: none;" class="mb-3"></div>
+
+                
+                <!-- Map Container -->
+                <div id="mapContainer" style="display: none;" class="mb-3">
+                    <h5 class="text-center">Location Map</h5>
+                    <div id="map" style="height: 500px; width: 100%;"></div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-striped table-dark table-bordered text-nowrap">
                         <thead>
                             <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Time</th>
-                                <th scope="col">Latitude</th>
-                                <th scope="col">Longitude</th>
-                                <th scope="col">View on Map</th>
+                                <th scope="col" class="text-center">Date</th>
+                                <th scope="col" class="text-center">Time</th>
+                                <th scope="col" class="text-center">Latitude</th>
+                                <th scope="col" class="text-center">Longitude</th>
+                                <th scope="col" class="text-center">View on Map</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -32,8 +40,8 @@
                                 <td>{{ record.latitude }}</td>
                                 <td>{{ record.longitude }}</td>
                                 <td>
-                                    <a href="https://www.google.com/maps?q={{ record.latitude }},{{ record.longitude }}"
-                                        target="_blank" class="btn btn-info btn-sm">View</a>
+                                    <button class="btn btn-info btn-sm"
+                                        onclick="showMap({{ record.latitude }}, {{ record.longitude }})">View</button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -49,5 +57,43 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript to Display Map -->
+<!-- JavaScript to Display Map and Go Back -->
+<script>
+    function showMap(latitude, longitude) {
+        // Hide the table and show the map container
+        document.querySelector(".table-responsive").style.display = "none";
+        document.getElementById("mapContainer").style.display = "block";
+
+        // Initialize the map with zoom and center
+        const map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: latitude, lng: longitude },
+            zoom: 18,
+        });
+
+        // Add a marker on the map
+        new google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: "Employee Location",
+        });
+
+        // Push the current state to the history
+        history.pushState(null, null, location.href);
+
+        // Handle the browser back button
+        window.onpopstate = function () {
+            // Show the table and hide the map container when going back
+            document.querySelector(".table-responsive").style.display = "block";
+            document.getElementById("mapContainer").style.display = "none";
+        };
+    }
+</script>
+
+
+
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" async defer></script>
 
 {% endblock %}

@@ -200,7 +200,7 @@ def location_history(email):
     # Sort history data by date and time
     history_data.sort(key=lambda x: (x['date'], x['time']))
 
-    return render_template('location_history.html', history=history_data, email=email)
+    return render_template('location_history.html', history=history_data, email=email, api_key=google_maps_api_key)
 
 
 
