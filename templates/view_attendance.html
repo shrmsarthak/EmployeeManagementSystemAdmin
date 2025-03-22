@@ -8,15 +8,22 @@
             <div class="card p-3 p-md-4 bg-dark text-white">
                 <h4 class="mb-3 text-center">Employee Attendance</h4>
 
+                <!-- Export Button -->
+                <div class="mb-3 text-end">
+                    <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+                </div>
+
                 <!-- Filters -->
                 <div class="row mb-3">
                     <div class="col-md-3">
                         <label for="employeeName" class="form-label">Employee Name</label>
-                        <input type="text" id="nameFilter" class="form-control" placeholder="Filter by Name" onkeyup="filterTable()">
+                        <input type="text" id="nameFilter" class="form-control" placeholder="Filter by Name"
+                            onkeyup="filterTable()">
                     </div>
                     <div class="col-md-3">
                         <label for="employeeCode" class="form-label">Employee Code</label>
-                        <input type="text" id="codeFilter" class="form-control" placeholder="Filter by Employee Code" onkeyup="filterTable()">
+                        <input type="text" id="codeFilter" class="form-control" placeholder="Filter by Employee Code"
+                            onkeyup="filterTable()">
                     </div>
                     <div class="col-md-3">
                         <label for="startDate" class="form-label">Start Date</label>
@@ -28,9 +35,10 @@
                     </div>
                 </div>
 
-                <!-- Table without Scrolling -->
-                <div class="table-responsive">
-                    <table class="table table-striped table-dark table-bordered text-center text-nowrap" id="attendanceTable">
+                <!-- Table with Scrolling -->
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-dark table-bordered text-center text-nowrap"
+                        id="attendanceTable">
                         <thead>
                             <tr>
                                 <th scope="col" class="text-center">Name</th>
@@ -59,39 +67,57 @@
     </div>
 </div>
 
+<!-- Include XLSX Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
+    function exportToExcel() {
+        const table = document.getElementById("attendanceTable");
+        const workbook = XLSX.utils.table_to_book(table, { sheet: "Attendance" });
+
+        // Adjust column widths
+        const worksheet = workbook.Sheets["Attendance"];
+        const columns = [
+            { wch: 20 }, // Name column width
+            { wch: 20 }, // Employee Code column width
+            { wch: 15 }, // Date column width
+            { wch: 15 }, // Check-In Time column width
+            { wch: 15 }  // Check-Out Time column width
+        ];
+        worksheet["!cols"] = columns;
+
+        XLSX.writeFile(workbook, "Employee_Attendance.xlsx");
+    }
+
+
     function filterTable() {
         const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
         const codeFilter = document.getElementById('codeFilter').value.toLowerCase();
-        const startDate = new Date(document.getElementById('startDate').value);
-        const endDate = new Date(document.getElementById('endDate').value);
-    
+        const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+        const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+
         const table = document.getElementById('attendanceTable');
         const rows = table.getElementsByTagName('tr');
-    
+
         for (let i = 1; i < rows.length; i++) {
             const name = rows[i].getElementsByTagName('td')[0]?.textContent.toLowerCase();
             const code = rows[i].getElementsByTagName('td')[1]?.textContent.toLowerCase();
             const date = rows[i].getElementsByTagName('td')[2]?.textContent;
-    
+
             let nameMatch = !nameFilter || name.includes(nameFilter);
             let codeMatch = !codeFilter || code.includes(codeFilter);
-    
-            // Convert DD-MM-YYYY format to a Date object
+
             const [day, month, year] = date.split('-');
             const tableDate = new Date(`${year}-${month}-${day}`);
-    
+
             let dateMatch = true;
-            if (!isNaN(tableDate)) {
-                if (startDate && endDate) {
-                    dateMatch = tableDate >= startDate && tableDate <= endDate;
-                } else if (startDate) {
-                    dateMatch = tableDate >= startDate;
-                } else if (endDate) {
-                    dateMatch = tableDate <= endDate;
-                }
+            if (startDate && !isNaN(tableDate)) {
+                dateMatch = tableDate >= startDate;
             }
-    
+            if (endDate && !isNaN(tableDate)) {
+                dateMatch = dateMatch && tableDate <= endDate;
+            }
+
             if (nameMatch && codeMatch && dateMatch) {
                 rows[i].style.display = '';
             } else {
@@ -99,8 +125,7 @@
             }
         }
     }
-    </script>
-    
-    
-    
+
+</script>
+
 {% endblock %}
