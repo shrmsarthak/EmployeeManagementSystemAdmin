@@ -245,6 +245,25 @@ def view_all_locations_history(email):
 
     return render_template("view_all_locations_history.html", locations=locations, email=email, api_key=google_maps_api_key)
 
+@app.route('/view_attendance')
+def view_attendance():
+    attendance_data = []
+    employee_ref = db.reference('employees')
+    employees = employee_ref.get()
+    if employees:
+        for email, employee in employees.items():
+            if 'attendance' in employee:
+                for date, record in employee['attendance'].items():
+                    attendance_data.append({
+                        'name': employee.get('name', 'N/A'),
+                        'employee_code': employee.get('employee_code', 'N/A'),
+                        'date': date,
+                        'check_in': record.get('check-in', 'N/A'),
+                        'check_out': record.get('check-out', 'N/A')
+                    })
+
+    return render_template('view_attendance.html', attendance=attendance_data)
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
