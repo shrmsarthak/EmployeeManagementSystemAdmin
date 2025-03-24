@@ -72,7 +72,7 @@ def add_employee():
 
         
         new_employee = {
-            'email': employee_email,
+            'email': employee_email.lower(),
             'name': employee_name,
             'phone': employee_phone,
             'employee_code': employee_code,
