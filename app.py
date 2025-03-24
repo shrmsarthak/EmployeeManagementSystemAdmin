@@ -264,6 +264,25 @@ def view_attendance():
 
     return render_template('view_attendance.html', attendance=attendance_data)
 
+
+@app.route('/view_leaves')
+def view_leaves():
+    leaves_data = []
+    employee_ref = db.reference('employees')
+    employees = employee_ref.get()
+    if employees:
+        for email, employee in employees.items():
+            if 'leaves' in employee:
+                for date, record in employee['leaves'].items():
+                    leaves_data.append({
+                        'name': employee.get('name', 'N/A'),
+                        'employee_code': employee.get('employee_code', 'N/A'),
+                        'date': date,
+                        'time': record.get('time', 'N/A'),
+                        'reason': record.get('reason', 'N/A')
+                    })
+    return render_template('view_leaves.html', leaves=leaves_data)
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
