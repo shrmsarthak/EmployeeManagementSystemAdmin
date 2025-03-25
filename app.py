@@ -95,6 +95,7 @@ def add_employee():
         employee_email = request.form['email']
         employee_name = request.form['name']
         employee_phone = request.form['phone']
+        category = request.form['category']
         employee_code = request.form['employeecode']
         employee_unit = request.form['employeeunit']
         # employee_latitude = request.form['latitude']
@@ -105,6 +106,7 @@ def add_employee():
             'email': employee_email.lower(),
             'name': employee_name,
             'phone': employee_phone,
+            'category': category,
             'employee_code': employee_code,
             'employee_unit': employee_unit,
             'employee_latitude': "",
@@ -515,8 +517,8 @@ def logout():
     flash('Logged out successfully!', 'info')
     return redirect(url_for('home'))
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=5000)
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
