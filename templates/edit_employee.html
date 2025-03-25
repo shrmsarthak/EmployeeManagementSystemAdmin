@@ -30,11 +30,11 @@
                     </div>
                     <div class="form-group mb-3">
                         <label>Latitude</label>
-                        <input type="text" name="latitude" class="form-control" value="{{ employee.employee_latitude }}" required>
+                        <input type="text" name="latitude" class="form-control" value="{{ employee.employee_latitude }}">
                     </div>
                     <div class="form-group mb-3">
                         <label>Longitude</label>
-                        <input type="text" name="longitude" class="form-control" value="{{ employee.employee_longitude }}" required>
+                        <input type="text" name="longitude" class="form-control" value="{{ employee.employee_longitude }}">
                     </div>
                     <button type="submit" class="btn btn-success">Update</button>
                     <a href="{{ url_for('view_employee') }}" class="btn btn-secondary">Cancel</a>

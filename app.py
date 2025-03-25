@@ -10,6 +10,30 @@ from dotenv import load_dotenv
 load_dotenv()
 from datetime import datetime
 
+import re
+
+def verify_email(email: str) -> str:
+    match = re.match(r"([^@]+)@(.+)", email)
+    if not match:
+        raise ValueError("Invalid email format")
+    
+    local_part, domain = match.groups()
+    if '.' in local_part:
+        local_part = local_part.replace('.', '_dot_')
+    
+    return f"{local_part}@{domain}"
+
+def revert_email(email: str) -> str:
+    match = re.match(r"([^@]+)@(.+)", email)
+    if not match:
+        raise ValueError("Invalid email format")
+    
+    local_part, domain = match.groups()
+    if '_dot_' in local_part:
+        local_part = local_part.replace('_dot_', '.')
+    
+    return f"{local_part}@{domain}"
+
 # Load Firebase credentials from .env file
 firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
 google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
@@ -67,8 +91,8 @@ def add_employee():
         employee_phone = request.form['phone']
         employee_code = request.form['employeecode']
         employee_unit = request.form['employeeunit']
-        employee_latitude = request.form['latitude']
-        employee_longitude = request.form['longitude']
+        # employee_latitude = request.form['latitude']
+        # employee_longitude = request.form['longitude']
 
         
         new_employee = {
@@ -77,9 +101,13 @@ def add_employee():
             'phone': employee_phone,
             'employee_code': employee_code,
             'employee_unit': employee_unit,
-            'employee_latitude': employee_latitude,
-            'employee_longitude': employee_longitude
+            'employee_latitude': "",
+            'employee_longitude': ""
         }
+
+        employee_email = verify_email(employee_email)
+
+        print(employee_email)
 
         try:
             ref = db.reference(f'/employees/{employee_email.split("@")[0]}')
@@ -221,8 +249,8 @@ def view_all_locations_history(email):
     employee_ref = db.reference(f'employees/{email}/location_tracking')
     location_history = employee_ref.get()
     
-    
     # Prepare a list to store location records for the selected date
+
     locations = []
     if location_history:
         for date, times in location_history.items():
@@ -237,8 +265,6 @@ def view_all_locations_history(email):
                     }
                     locations.append(record)
 
-                    
-
     # If no locations are found for the selected date, display a message (optional)
     if not locations:
         flash("No locations found for the selected date.")
@@ -250,9 +276,12 @@ def view_attendance():
     attendance_data = []
     employee_ref = db.reference('employees')
     employees = employee_ref.get()
+
     if employees:
         for email, employee in employees.items():
+            
             if 'attendance' in employee:
+                print("in")
                 for date, record in employee['attendance'].items():
                     attendance_data.append({
                         'name': employee.get('name', 'N/A'),
@@ -261,6 +290,8 @@ def view_attendance():
                         'check_in': record.get('check-in', 'N/A'),
                         'check_out': record.get('check-out', 'N/A')
                     })
+
+    print(attendance_data)
 
     return render_template('view_attendance.html', attendance=attendance_data)
 
@@ -291,3 +322,6 @@ def logout():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
