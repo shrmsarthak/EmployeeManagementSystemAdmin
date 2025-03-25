@@ -85,6 +85,12 @@ def add_employee():
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
 
+    unit_ref = db.reference('units')
+    units = unit_ref.get() or {}
+
+    categories_ref = db.reference('categories')
+    categories = categories_ref.get() or {}
+
     if request.method == 'POST':
         employee_email = request.form['email']
         employee_name = request.form['name']
@@ -122,7 +128,7 @@ def add_employee():
         except Exception as e:
             flash('Failed to add employee!', 'danger')
 
-    return render_template('add_employee.html')
+    return render_template('add_employee.html', units=units, categories=categories)
 
 @app.route('/view_employee')
 def view_employee():
