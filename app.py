@@ -317,7 +317,8 @@ def view_leaves():
                         'name': employee.get('name', 'N/A'),
                         'employee_code': employee.get('employee_code', 'N/A'),
                         'date': date,
-                        'time': record.get('time', 'N/A'),
+                        'startdate': record.get('startdate', 'N/A'),
+                        'enddate': record.get('enddate', 'N/A'),
                         'reason': record.get('reason', 'N/A')
                     })
     return render_template('view_leaves.html', leaves=leaves_data)

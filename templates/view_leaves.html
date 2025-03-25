@@ -43,8 +43,9 @@
                             <tr>
                                 <th scope="col" class="text-center">Name</th>
                                 <th scope="col" class="text-center">Employee Code</th>
-                                <th scope="col" class="text-center">Leave Date</th>
-                                <th scope="col" class="text-center">Leave Applied Time</th>
+                                <th scope="col" class="text-center">Leave Applied Date</th>
+                                <th scope="col" class="text-center">Leave Start Date</th>
+                                <th scope="col" class="text-center">Leave End Date</th>
                                 <th scope="col" class="text-center">Leave Reason</th>
                             </tr>
                         </thead>
@@ -54,14 +55,14 @@
                                 <td class="text-center">{{ record.name }}</td>
                                 <td class="text-center">{{ record.employee_code }}</td>
                                 <td class="text-center">{{ record.date }}</td>
-                                <td class="text-center">{{ record.time }}</td>
+                                <td class="text-center">{{ record.startdate }}</td>
+                                <td class="text-center">{{ record.enddate }}</td>
                                 <td class="text-center">{{ record.reason }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
@@ -73,22 +74,32 @@
 <script>
     function exportToExcel() {
         const table = document.getElementById("leavesTable");
-        const workbook = XLSX.utils.table_to_book(table, { sheet: "Leaves" });
+        const clonedTable = table.cloneNode(true);
+        const rows = clonedTable.getElementsByTagName("tr");
+        
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i].style.display === "none") {
+                rows[i].remove();
+            }
+        }
+
+        
+        
+        const workbook = XLSX.utils.table_to_book(clonedTable, { sheet: "Leaves" });
 
         // Adjust column widths
         const worksheet = workbook.Sheets["Leaves"];
-        const columns = [
-            { wch: 20 }, // Name column width
+        worksheet["!cols"] = [
+            { wch: 25 }, // Name column width
             { wch: 20 }, // Employee Code column width
-            { wch: 20 }, // Date column width
-            { wch: 20 }, // Check-In Time column width
-            { wch: 20 }  // Check-Out Time column width
+            { wch: 20 }, // Leave Applied Date column width
+            { wch: 25 }, // Leave Start Date column width
+            { wch: 25 }, // Leave End Date column width
+            { wch: 40 }  // Leave Reason column width
         ];
-        worksheet["!cols"] = columns;
 
-        XLSX.writeFile(workbook, "Employee_Leaves.xlsx");
-    }
-
+            XLSX.writeFile(workbook, "Employee_Leaves.xlsx");
+        }
 
     function filterTable() {
         const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
@@ -102,20 +113,26 @@
         for (let i = 1; i < rows.length; i++) {
             const name = rows[i].getElementsByTagName('td')[0]?.textContent.toLowerCase();
             const code = rows[i].getElementsByTagName('td')[1]?.textContent.toLowerCase();
-            const date = rows[i].getElementsByTagName('td')[2]?.textContent;
+            const startLeaveDate = rows[i].getElementsByTagName('td')[3]?.textContent;
+            const endLeaveDate = rows[i].getElementsByTagName('td')[4]?.textContent;
 
             let nameMatch = !nameFilter || name.includes(nameFilter);
             let codeMatch = !codeFilter || code.includes(codeFilter);
 
-            const [day, month, year] = date.split('-');
-            const tableDate = new Date(`${year}-${month}-${day}`);
+            const parseDate = (dateStr) => {
+                const [day, month, year] = dateStr.split('-');
+                return new Date(`${year}-${month}-${day}`);
+            };
+
+            let startLeave = startLeaveDate ? parseDate(startLeaveDate) : null;
+            let endLeave = endLeaveDate ? parseDate(endLeaveDate) : null;
 
             let dateMatch = true;
-            if (startDate && !isNaN(tableDate)) {
-                dateMatch = tableDate >= startDate;
+            if (startDate && startLeave) {
+                dateMatch = startLeave >= startDate;
             }
-            if (endDate && !isNaN(tableDate)) {
-                dateMatch = dateMatch && tableDate <= endDate;
+            if (endDate && endLeave) {
+                dateMatch = dateMatch && endLeave <= endDate;
             }
 
             if (nameMatch && codeMatch && dateMatch) {
@@ -125,7 +142,6 @@
             }
         }
     }
-
 </script>
 
 {% endblock %}
