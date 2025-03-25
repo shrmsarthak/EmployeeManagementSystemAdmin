@@ -124,8 +124,6 @@ def add_employee():
 
     return render_template('add_employee.html')
 
-
-
 @app.route('/view_employee')
 def view_employee():
     if 'logged_in' not in session:
@@ -134,6 +132,8 @@ def view_employee():
     # Get all employee data from Firebase Realtime Database
     ref = db.reference('employees')
     employees = ref.get()  # Get all employee records
+
+    print(employees)
     
     # Pass employee data to the template
     return render_template('view_employee.html', employees=employees)
@@ -314,14 +314,113 @@ def view_leaves():
                     })
     return render_template('view_leaves.html', leaves=leaves_data)
 
+@app.route('/add_employee_category', methods=['GET', 'POST'])
+def add_employee_category():
+
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    if request.method == "POST":
+        categoryname = request.form["categoryname"]
+        checkintime = request.form["checkintime"]
+        checkouttime = request.form["checkouttime"]
+
+        new_category = {
+            'categoryname': categoryname,
+            'checkintime': checkintime,
+            'checkouttime': checkouttime,
+        }
+
+        try:
+            ref = db.reference(f'/categories/{categoryname}')
+            existing_category = ref.get()  # Check if employee already exists
+
+            if existing_category:
+                flash('Category with this name already exists!', 'warning')
+            else:
+                ref.set(new_category)
+                flash('Category added successfully!', 'success')
+            
+        except Exception as e:
+            flash('Failed to add category!', 'danger')
+
+        print(categoryname,checkintime, checkouttime)
+ 
+    return render_template('add_employee_category.html')
+
+@app.route('/view_employee_category')
+def view_employee_category():
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+    
+    ref = db.reference('categories')
+    categories = ref.get()
+
+    print(categories)
+
+    return render_template('view_employee_category.html', categories=categories)
+
+@app.route('/edit_employee_category/<categoryname>', methods=['GET', 'POST'])
+def edit_employee_category(categoryname):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    ref = db.reference(f'/categories/{categoryname}')
+    category = ref.get()
+
+    if not category:
+        flash("Category not found!", "danger")
+        return redirect(url_for('view_employee_category'))
+
+    if request.method == "POST":
+        new_categoryname = request.form["categoryname"]
+        checkintime = request.form["checkintime"]
+        checkouttime = request.form["checkouttime"]
+
+        # If category name is changed, create new record and delete old one
+        if new_categoryname != categoryname:
+            new_ref = db.reference(f'/categories/{new_categoryname}')
+            new_ref.set({
+                'categoryname': new_categoryname,
+                'checkintime': checkintime,
+                'checkouttime': checkouttime,
+            })
+            ref.delete()  # Remove old category
+        else:
+            ref.update({
+                'checkintime': checkintime,
+                'checkouttime': checkouttime
+            })
+
+        flash("Category updated successfully!", "success")
+        return redirect(url_for('view_employee_category'))
+
+    return render_template('edit_employee_category.html', category=category)
+
+
+@app.route('/delete_employee_category/<categoryname>')
+def delete_employee_category(categoryname):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    ref = db.reference(f'/categories/{categoryname}')
+    if ref.get():
+        ref.delete()
+        flash("Category deleted successfully!", "success")
+    else:
+        flash("Category not found!", "danger")
+
+    return redirect(url_for('view_employee_category'))
+
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('Logged out successfully!', 'info')
     return redirect(url_for('home'))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-
 # if __name__ == '__main__':
-#     app.run(debug=True)
+#     app.run(host='0.0.0.0', port=5000)
+
+if __name__ == '__main__':
+    app.run(debug=True)

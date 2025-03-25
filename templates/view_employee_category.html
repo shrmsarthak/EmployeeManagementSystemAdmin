@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-3 p-md-4 bg-dark text-white">
+                <h4 class="mb-3 text-center">Employee Categories</h4>
+
+                {% if categories %}
+
+                <!-- Table with Scrolling -->
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-dark table-bordered text-center text-nowrap"
+                        id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">Employee Category</th>
+                                <th scope="col" class="text-center">Check-In Time</th>
+                                <th scope="col" class="text-center">Check-Out Time</th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in categories.items() %}
+                            <tr>
+                                <td class="text-center">{{ value.get('categoryname', 'N/A') }}</td>
+                                <td class="text-center">{{ value.get('checkintime', 'N/A') }}</td>
+                                <td class="text-center">{{ value.get('checkouttime', 'N/A') }}</td>
+                                <td class="text-center">
+                                    <!-- Edit Button -->
+                                    <a href="{{ url_for('edit_employee_category', categoryname=key) }}"
+                                        class="btn btn-warning btn-sm">Edit</a>
+                                    <!-- Delete Button -->
+                                    <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ key }}')">Delete</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
+                <p class="text-center text-white">No categories available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Delete Confirmation -->
+<script>
+    function confirmDelete(categoryname) {
+        if (confirm("Are you sure you want to delete this category?")) {
+            window.location.href = "/delete_employee_category/" + categoryname;
+        }
+    }
+</script>
+
+{% endblock %}
