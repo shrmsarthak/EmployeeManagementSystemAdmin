@@ -412,6 +412,96 @@ def delete_employee_category(categoryname):
 
     return redirect(url_for('view_employee_category'))
 
+@app.route('/add_unit', methods=['GET', 'POST'])
+def add_unit():
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    if request.method == "POST":
+        unit_name = request.form["unit_name"]
+        latitude = request.form["latitude"]
+        longitude = request.form["longitude"]
+        username = request.form["username"]
+        password = request.form["password"]
+
+        new_unit = {
+            'unit_name': unit_name,
+            'latitude': latitude,
+            'longitude': longitude,
+            'username': username,
+            'password': password
+        }
+
+        try:
+            ref = db.reference(f'/units/{unit_name}')
+            existing_unit = ref.get()
+
+            if existing_unit:
+                flash('Unit with this name already exists!', 'warning')
+            else:
+                ref.set(new_unit)
+                flash('Unit added successfully!', 'success')
+
+        except Exception as e:
+            flash('Failed to add unit!', 'danger')
+
+    return render_template('add_unit.html')
+
+
+@app.route('/view_units')
+def view_units():
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+    
+    ref = db.reference('units')
+    units = ref.get() or {}
+
+    return render_template('view_units.html', units=units)
+
+@app.route('/edit_unit/<string:unit_name>', methods=['GET', 'POST'])
+def edit_unit(unit_name):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    ref = db.reference(f'/units/{unit_name}')
+    unit = ref.get() or {}
+
+    if not unit:
+        flash('Unit not found!', 'danger')
+        return redirect(url_for('view_units'))
+
+    if request.method == "POST":
+        updated_data = {
+            'unit_name': request.form["unit_name"],
+            'latitude': request.form["latitude"],
+            'longitude': request.form["longitude"],
+            'username': request.form["username"],
+            'password': request.form["password"]
+        }
+
+        try:
+            ref.set(updated_data)
+            flash('Unit updated successfully!', 'success')
+            return redirect(url_for('view_units'))
+        except Exception as e:
+            flash('Failed to update unit!', 'danger')
+
+    return render_template('edit_unit.html', unit=unit)
+
+@app.route('/delete_unit/<string:unit_name>')
+def delete_unit(unit_name):
+    if 'logged_in' not in session:
+        return redirect(url_for('admin'))
+
+    ref = db.reference(f'/units/{unit_name}')
+    
+    try:
+        ref.delete()
+        flash('Unit deleted successfully!', 'success')
+    except Exception as e:
+        flash('Failed to delete unit!', 'danger')
+
+    return redirect(url_for('view_units'))
 
 @app.route('/logout')
 def logout():
