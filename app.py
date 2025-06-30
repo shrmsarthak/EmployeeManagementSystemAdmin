@@ -6,8 +6,8 @@ import firebase_admin
 from firebase_admin import credentials, db
 import json
 
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 from datetime import datetime
 
 import re
@@ -35,15 +35,18 @@ def revert_email(email: str) -> str:
     return f"{local_part}@{domain}"
 
 # Load Firebase credentials from .env file
-firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
-google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+cred_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
 
+if cred_json is None:
+    raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY not set!")
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate(firebase_cred)
+cred = credentials.Certificate(json.loads(cred_json))
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'  # Replace with your Firebase Realtime Database URL
 })
+
+google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 # Initialize Flask app
 app = Flask(__name__)
