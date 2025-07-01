@@ -6,11 +6,13 @@ import firebase_admin
 from firebase_admin import credentials, db
 import json
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 from datetime import datetime
 
 import re
+
+isDevelopment = True
 
 def verify_email(email: str) -> str:
     match = re.match(r"([^@]+)@(.+)", email)
@@ -35,18 +37,27 @@ def revert_email(email: str) -> str:
     return f"{local_part}@{domain}"
 
 # Load Firebase credentials from .env file
-cred_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
 
-if cred_json is None:
-    raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY not set!")
+
+if isDevelopment:
+    print("In Development")
+    firebase_cred = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY'))
+    if not firebase_cred:
+        raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY not set!")
+    cred = credentials.Certificate(firebase_cred)
+else:
+    print("In Production")
+    firebase_cred = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
+    if not firebase_cred:
+        raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY not set!")
+    cred = credentials.Certificate(json.loads(firebase_cred))
+
+google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate(json.loads(cred_json))
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'  # Replace with your Firebase Realtime Database URL
 })
-
-google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -526,3 +537,4 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
+
