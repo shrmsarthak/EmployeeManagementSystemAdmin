@@ -46,6 +46,8 @@
                                 <th scope="col" class="text-center">Date</th>
                                 <th scope="col" class="text-center">Check-In Time</th>
                                 <th scope="col" class="text-center">Check-Out Time</th>
+                                <th scope="col" class="text-center">Check-In Image</th>
+                                <th scope="col" class="text-center">Check-Out Image</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -56,12 +58,34 @@
                                 <td class="text-center">{{ record.date }}</td>
                                 <td class="text-center">{{ record.check_in }}</td>
                                 <td class="text-center">{{ record.check_out }}</td>
+
+                                <td class="text-center">
+                                    {% if record.check_in_image_url %}
+                                    <button class="btn btn-primary btn-sm"
+                                            onclick="showImageModal('{{ record.check_in_image_url }}')">
+                                        View
+                                    </button>
+                                    {% else %}
+                                    <span>No Image</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Check-Out Image Button -->
+                                <td class="text-center">
+                                    {% if record.check_out_image_url %}
+                                    <button class="btn btn-secondary btn-sm"
+                                            onclick="showImageModal('{{ record.check_out_image_url }}')">
+                                        View
+                                    </button>
+                                    {% else %}
+                                    <span>No Image</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
@@ -125,6 +149,11 @@
             }
         }
     }
+
+    function showImageModal(imageUrl) {
+        window.open(imageUrl, '_blank');
+    }
+
 
 </script>
 

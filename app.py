@@ -56,7 +56,7 @@ google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 # Initialize Firebase Admin SDK
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://employee-management-syst-cdbed-default-rtdb.firebaseio.com/'  # Replace with your Firebase Realtime Database URL
+    'databaseURL': 'https://employee-tracking-system-ea638-default-rtdb.firebaseio.com'  # Replace with your Firebase Realtime Database URL
 })
 
 # Initialize Flask app
@@ -305,12 +305,15 @@ def view_attendance():
             if 'attendance' in employee:
                 print("in")
                 for date, record in employee['attendance'].items():
+                    print("record",)
                     attendance_data.append({
                         'name': employee.get('name', 'N/A'),
                         'employee_code': employee.get('employee_code', 'N/A'),
                         'date': date,
-                        'check_in': record.get('check-in', 'N/A'),
-                        'check_out': record.get('check-out', 'N/A')
+                        'check_in': record.get("checkin")["time"],
+                        'check_out': record.get("checkout")["time"],
+                        'check_in_image_url': record.get("checkin")["photoUrl"],
+                        'check_out_image_url': record.get("checkout")["photoUrl"]
                     })
 
     print(attendance_data)
@@ -460,12 +463,15 @@ def add_unit():
             existing_unit = ref.get()
 
             if existing_unit:
+                print('Unit with this name already exists!')
                 flash('Unit with this name already exists!', 'warning')
             else:
                 ref.set(new_unit)
+                print('Unit added successfully!')
                 flash('Unit added successfully!', 'success')
 
         except Exception as e:
+            print('Failed to add unit!',e)
             flash('Failed to add unit!', 'danger')
 
     return render_template('add_unit.html')
