@@ -12,7 +12,7 @@ from datetime import datetime
 
 import re
 
-isDevelopment = True
+isDevelopment = False
 
 def verify_email(email: str) -> str:
     match = re.match(r"([^@]+)@(.+)", email)
