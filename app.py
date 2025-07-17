@@ -301,24 +301,35 @@ def view_attendance():
 
     if employees:
         for email, employee in employees.items():
-            
             if 'attendance' in employee:
-                print("in")
+                print(f"[INFO] Processing attendance for employee: {employee.get('employee_code', 'Unknown')}")
+
                 for date, record in employee['attendance'].items():
-                    print("record",)
+                    print(f"[DEBUG] Record for {date}: {record}")
+
+                    # Safely extract checkin and checkout data
+                    checkin_data = record.get("checkin") or {}
+                    checkout_data = record.get("checkout") or {}
+
+                    # Debug if check-in or check-out is missing
+                    if not checkin_data:
+                        print(f"[WARNING] Missing check-in data for {employee.get('employee_code')} on {date}")
+                    if not checkout_data:
+                        print(f"[WARNING] Missing check-out data for {employee.get('employee_code')} on {date}")
+
                     attendance_data.append({
                         'name': employee.get('name', 'N/A'),
                         'employee_code': employee.get('employee_code', 'N/A'),
                         'date': date,
-                        'check_in': record.get("checkin")["time"],
-                        'check_out': record.get("checkout")["time"],
-                        'check_in_image_url': record.get("checkin")["photoUrl"],
-                        'check_out_image_url': record.get("checkout")["photoUrl"]
+                        'check_in': checkin_data.get("time"),
+                        'check_out': checkout_data.get("time"),
+                        'check_in_image_url': checkin_data.get("photoUrl"),
+                        'check_out_image_url': checkout_data.get("photoUrl")
                     })
 
-    print(attendance_data)
-
+    print(f"[INFO] Final attendance data: {attendance_data}")
     return render_template('view_attendance.html', attendance=attendance_data)
+
 
 
 @app.route('/view_leaves')
