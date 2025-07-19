@@ -14,30 +14,7 @@ import re
 
 isDevelopment = False
 
-def verify_email(email: str) -> str:
-    match = re.match(r"([^@]+)@(.+)", email)
-    if not match:
-        raise ValueError("Invalid email format")
-    
-    local_part, domain = match.groups()
-    if '.' in local_part:
-        local_part = local_part.replace('.', '_dot_')
-    
-    return f"{local_part}@{domain}"
-
-def revert_email(email: str) -> str:
-    match = re.match(r"([^@]+)@(.+)", email)
-    if not match:
-        raise ValueError("Invalid email format")
-    
-    local_part, domain = match.groups()
-    if '_dot_' in local_part:
-        local_part = local_part.replace('_dot_', '.')
-    
-    return f"{local_part}@{domain}"
-
 # Load Firebase credentials from .env file
-
 
 if isDevelopment:
     print("In Development")
@@ -106,20 +83,18 @@ def add_employee():
     categories = categories_ref.get() or {}
 
     if request.method == 'POST':
-        employee_email = request.form['email']
-        employee_name = request.form['name']
         employee_phone = request.form['phone']
+        employee_name = request.form['name']
+        # employee_phone = request.form['phone']
         category = request.form['category']
         employee_code = request.form['employeecode']
         employee_unit = request.form['employeeunit']
         # employee_latitude = request.form['latitude']
         # employee_longitude = request.form['longitude']
-
         
         new_employee = {
-            'email': employee_email.lower(),
-            'name': employee_name,
             'phone': employee_phone,
+            'name': employee_name,
             'category': category,
             'employee_code': employee_code,
             'employee_unit': employee_unit,
@@ -127,12 +102,10 @@ def add_employee():
             'employee_longitude': ""
         }
 
-        employee_email = verify_email(employee_email)
-
-        print(employee_email)
+        print(employee_phone)
 
         try:
-            ref = db.reference(f'/employees/{employee_email.split("@")[0]}')
+            ref = db.reference(f'/employees/{employee_phone}')
             existing_employee = ref.get()  # Check if employee already exists
 
             if existing_employee:
@@ -160,13 +133,13 @@ def view_employee():
     # Pass employee data to the template
     return render_template('view_employee.html', employees=employees)
 
-@app.route('/delete_employee/<email>', methods=['POST'])
-def delete_employee(email):
+@app.route('/delete_employee/<phone>', methods=['POST'])
+def delete_employee(phone):
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
 
     try:
-        ref = db.reference(f'/employees/{email}')
+        ref = db.reference(f'/employees/{phone}')
         if ref.get():
             ref.delete()
             flash('Employee deleted successfully!', 'success')
@@ -183,12 +156,12 @@ def view_location(latitude, longitude):
         return redirect(url_for('admin'))
     return render_template('view_location.html', latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
-@app.route('/edit_employee/<email>', methods=['GET', 'POST'])
-def edit_employee(email):
+@app.route('/edit_employee/<phone>', methods=['GET', 'POST'])
+def edit_employee(phone):
     if 'logged_in' not in session:
         return redirect(url_for('admin'))
 
-    ref = db.reference(f'/employees/{email}')
+    ref = db.reference(f'/employees/{phone}')
     employee = ref.get()
 
     if not employee:
@@ -198,9 +171,8 @@ def edit_employee(email):
     if request.method == 'POST':
         # Get updated details from the form
         updated_employee = {
-            'email': request.form['email'],
-            'name': request.form['name'],
             'phone': request.form['phone'],
+            'name': request.form['name'],
             'employee_code': request.form['employeecode'],
             'employee_unit': request.form['employeeunit'],
             'employee_latitude': request.form['latitude'],
@@ -216,7 +188,7 @@ def edit_employee(email):
 
         return redirect(url_for('view_employee'))
 
-    return render_template('edit_employee.html', employee=employee, email=email)
+    return render_template('edit_employee.html', employee=employee, phone=phone)
 
 @app.route('/view_all_locations')
 def view_all_locations():
@@ -230,10 +202,10 @@ def view_all_locations():
     # Pass employee data to the template
     return render_template('view_all_locations.html', employees=employees, api_key=google_maps_api_key)
 
-@app.route('/location_history/<string:email>')
-def location_history(email):
+@app.route('/location_history/<string:phone>')
+def location_history(phone):
     # Reference to the employee's location tracking data in Firebase
-    employee_ref = db.reference(f'employees/{email}/location_tracking')
+    employee_ref = db.reference(f'employees/{phone}/location_tracking')
     location_history = employee_ref.get()
     # Convert nested data (date -> time -> coordinates) to a list for easier rendering
     history_data = []
@@ -251,7 +223,7 @@ def location_history(email):
     # Sort history data by date and time
     history_data.sort(key=lambda x: (x['date'], x['time']))
 
-    return render_template('location_history.html', history=history_data, email=email, api_key=google_maps_api_key)
+    return render_template('location_history.html', history=history_data, phone=phone, api_key=google_maps_api_key)
 
 @app.route('/location_map')
 def location_map():
@@ -259,8 +231,8 @@ def location_map():
     longitude = request.args.get("longitude")
     return render_template("location_map.html", latitude=latitude, longitude=longitude, api_key=google_maps_api_key)
 
-@app.route('/view_all_locations_history/<string:email>')
-def view_all_locations_history(email):
+@app.route('/view_all_locations_history/<string:phone>')
+def view_all_locations_history(phone):
     selected_date = request.args.get('date')
 
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
@@ -268,7 +240,7 @@ def view_all_locations_history(email):
 
     # Reference to the employee's location tracking data in Firebase
     
-    employee_ref = db.reference(f'employees/{email}/location_tracking')
+    employee_ref = db.reference(f'employees/{phone}/location_tracking')
     location_history = employee_ref.get()
     
     # Prepare a list to store location records for the selected date
@@ -291,7 +263,7 @@ def view_all_locations_history(email):
     if not locations:
         flash("No locations found for the selected date.")
 
-    return render_template("view_all_locations_history.html", locations=locations, email=email, api_key=google_maps_api_key)
+    return render_template("view_all_locations_history.html", locations=locations, phone=phone, api_key=google_maps_api_key)
 
 @app.route('/view_attendance')
 def view_attendance():
@@ -300,7 +272,7 @@ def view_attendance():
     employees = employee_ref.get()
 
     if employees:
-        for email, employee in employees.items():
+        for phone, employee in employees.items():
             if 'attendance' in employee:
                 print(f"[INFO] Processing attendance for employee: {employee.get('employee_code', 'Unknown')}")
 
@@ -338,7 +310,7 @@ def view_leaves():
     employee_ref = db.reference('employees')
     employees = employee_ref.get()
     if employees:
-        for email, employee in employees.items():
+        for phone, employee in employees.items():
             if 'leaves' in employee:
                 for date, record in employee['leaves'].items():
                     leaves_data.append({

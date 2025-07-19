@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-12">
             <div class="card p-3 p-md-4 bg-dark text-white">
-                <h4 class="mb-3 text-center">Location History for {{ email }}</h4>
+                <h4 class="mb-3 text-center">Location History for {{ phone }}</h4>
                 <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
                     <!-- Date Filter -->
                     <input type="date" id="dateFilter"
@@ -73,8 +73,8 @@
             alert("Please select a date.");
             return;
         }
-        // Redirect with both email and selected date
-        window.location.href = `/view_all_locations_history/{{ email }}?date=${selectedDate}`;
+        // Redirect with both phone and selected date
+        window.location.href = `/view_all_locations_history/{{ phone }}?date=${selectedDate}`;
     }
 
     function showMap(latitude, longitude) {

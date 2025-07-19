@@ -20,9 +20,8 @@
                     <table class="table table-striped table-dark table-bordered text-center text-nowrap">
                         <thead>
                             <tr>
-                                <th scope="col" class="text-center">Employee Email</th>
-                                <th scope="col" class="text-center">Employee Name</th>
                                 <th scope="col" class="text-center">Employee Phone</th>
+                                <th scope="col" class="text-center">Employee Name</th>
                                 <th scope="col" class="text-center">Employee Code</th>
                                 <th scope="col" class="text-center">Employee Unit</th>
                                 <th scope="col" class="text-center">Latitude</th>
@@ -32,9 +31,9 @@
                         </thead>
                         <tbody>
                             {% if employees %}
-                            {% for email, employee in employees.items() %}
+                            {% for phone, employee in employees.items() %}
                             <tr>
-                                <td class="text-center" style="word-wrap: break-word;">{{ employee.email }}</td>
+                                <td class="text-center" style="word-wrap: break-word;">{{ employee.phone }}</td>
                                 <td class="text-center">{{ employee.name }}</td>
                                 <td class="text-center">{{ employee.phone }}</td>
                                 <td class="text-center">{{ employee.employee_code }}</td>
@@ -44,17 +43,17 @@
                                 <td class="text-center">
                                     <!-- Action Buttons -->
                                     <div class="d-flex flex-wrap gap-1 justify-content-center">
-                                        <form id="deleteForm-{{ email }}" method="POST"
-                                            action="{{ url_for('delete_employee', email=email) }}">
-                                            <input type="hidden" name="email" value="{{ email }}">
+                                        <form id="deleteForm-{{ phone }}" method="POST"
+                                            action="{{ url_for('delete_employee', phone=phone) }}">
+                                            <input type="hidden" name="phone" value="{{ phone }}">
                                             <button type="button" class="btn btn-danger btn-sm"
-                                                onclick="confirmDelete('{{ email }}')">Delete</button>
+                                                onclick="confirmDelete('{{ phone }}')">Delete</button>
                                         </form>
                                         <a href="{{ url_for('view_location', latitude=employee.employee_latitude, longitude=employee.employee_longitude) }}"
                                             class="btn btn-info btn-sm">View</a>
-                                        <a href="{{ url_for('edit_employee', email=email) }}"
+                                        <a href="{{ url_for('edit_employee', phone=phone) }}"
                                             class="btn btn-warning btn-sm">Edit</a>
-                                            <a href="{{ url_for('location_history', email=email) }}"
+                                            <a href="{{ url_for('location_history', phone=phone) }}"
                                             class="btn btn-secondary btn-sm"
                                             style="min-width: 160px;">Location History</a>
                                          
@@ -80,7 +79,7 @@
 <!-- SweetAlert for Delete Confirmation -->
 <script>
    
-    function confirmDelete(email) {
+    function confirmDelete(phone) {
         Swal.fire({
             title: 'Are you sure?',
             text: "This action cannot be undone!",
@@ -91,7 +90,7 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById(`deleteForm-${email}`).submit();
+                document.getElementById(`deleteForm-${phone}`).submit();
             }
         });
     }
