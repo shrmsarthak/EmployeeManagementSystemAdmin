@@ -33,7 +33,7 @@ google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 # Initialize Firebase Admin SDK
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://employee-tracking-system-ea638-default-rtdb.firebaseio.com'  # Replace with your Firebase Realtime Database URL
+    'databaseURL': 'https://employee-tracking-system-ea638.firebaseio.com'  # Replace with your Firebase Realtime Database URL
 })
 
 # Initialize Flask app
