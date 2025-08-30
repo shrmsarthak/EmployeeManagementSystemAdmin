@@ -5,66 +5,80 @@
 <br>
 
 <div class="container-fluid">
-    <div class="row text-center justify-content-center">
+    <div class="row justify-content-center">
         <div class="col-12">
-            <div class="card p-4 bg-dark text-white">
-                <h4 class="mb-3">View Employee</h4>
-                <table class="table table-striped table-dark" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Employee Name</th>
-                            <th>Employee Phone</th>
-                            <th>Employee Code</th>
-                            <th>Employee Unit</th>
-                            <th>Latitude</th>
-                            <th>Longitude</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if employees %}
-                        {% for phone, employee in employees.items() %}
-                        <tr>
-                            <td>{{ employee.name }}</td>
-                            <td>{{ employee.phone }}</td>
-                            <td>{{ employee.employee_code }}</td>
-                            <td>{{ employee.employee_unit }}</td>
-                            <td>{{ employee.employee_latitude }}</td>
-                            <td>{{ employee.employee_longitude }}</td>
-                            <td>
-                                <!-- Delete Button -->
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ phone }}')">
-                                    Delete
-                                </button>
+            <div class="card p-3 p-md-4 bg-dark text-white">
+                <h4 class="mb-3 text-center">View Employee</h4>
+                <div class="d-flex justify-content-center mb-3">
+                    <button class="btn btn-primary btn-sm" onclick="viewAllLocations()">View All Locations</button>
+                </div>
+                <div id="allLocationsMap" style="height: 500px; width: 100%; display: none;" class="mb-3"></div>
 
-                                <!-- View Button -->
-                                <!-- View Button -->
-                                <a href="{{ url_for('view_location', latitude=employee.employee_latitude, longitude=employee.employee_longitude) }}"
-                                    class="btn btn-info btn-sm">
-                                    View
-                                </a>
+                <!-- Table without Scrolling -->
+                <!-- Table without Scrolling -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-dark table-bordered text-center text-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">Employee Phone</th>
+                                <th scope="col" class="text-center">Employee Name</th>
+                                <th scope="col" class="text-center">Employee Code</th>
+                                <th scope="col" class="text-center">Employee Unit</th>
+                                <th scope="col" class="text-center">Latitude</th>
+                                <th scope="col" class="text-center">Longitude</th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if employees %}
+                            {% for phone, employee in employees.items() %}
+                            <tr>
+                                <td class="text-center" style="word-wrap: break-word;">{{ employee.phone }}</td>
+                                <td class="text-center">{{ employee.name }}</td>
+                                <td class="text-center">{{ employee.phone }}</td>
+                                <td class="text-center">{{ employee.employee_code }}</td>
+                                <td class="text-center">{{ employee.employee_unit }}</td>
+                                <td class="text-center">{{ employee.employee_latitude }}</td>
+                                <td class="text-center">{{ employee.employee_longitude }}</td>
+                                <td class="text-center">
+                                    <!-- Action Buttons -->
+                                    <div class="d-flex flex-wrap gap-1 justify-content-center">
+                                        <form id="deleteForm-{{ phone }}" method="POST"
+                                            action="{{ url_for('delete_employee', phone=phone) }}">
+                                            <input type="hidden" name="phone" value="{{ phone }}">
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="confirmDelete('{{ phone }}')">Delete</button>
+                                        </form>
+                                        <a href="{{ url_for('view_location', latitude=employee.employee_latitude, longitude=employee.employee_longitude) }}"
+                                            class="btn btn-info btn-sm">View</a>
+                                        <a href="{{ url_for('edit_employee', phone=phone) }}"
+                                            class="btn btn-warning btn-sm">Edit</a>
+                                            <a href="{{ url_for('location_history', phone=phone) }}"
+                                            class="btn btn-secondary btn-sm"
+                                            style="min-width: 160px;">Location History</a>
+                                         
+                                    </div>
 
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">No employees found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
 
-                                <form id="deleteForm-{{ phone }}" method="POST"
-                                    action="{{ url_for('delete_employee', phone=phone) }}" style="display: none;">
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center">No employees found.</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div><br><br><br>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- SweetAlert for Delete Confirmation -->
 <script>
+   
     function confirmDelete(phone) {
         Swal.fire({
             title: 'Are you sure?',
@@ -81,10 +95,17 @@
         });
     }
 
+
+
     // View Location using Google Maps
     function viewLocation(latitude, longitude) {
-        const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        window.open(url, '_blank');
+    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    window.open(url, '_blank');
+}
+
+    // View All Locations using Google Maps
+    function viewAllLocations() {
+        window.location.href = "{{ url_for('view_all_locations') }}";
     }
 </script>
 

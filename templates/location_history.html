@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-3 p-md-4 bg-dark text-white">
+                <h4 class="mb-3 text-center">Location History for {{ phone }}</h4>
+                <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                    <!-- Date Filter -->
+                    <input type="date" id="dateFilter"
+                        class="form-control form-control-sm bg-light text-dark border-primary"
+                        style="max-width: 150px; font-size: 14px; padding: 4px; border-radius: 5px;">
+
+                    <!-- View All Locations Button -->
+                    <button class="btn btn-primary btn-sm" onclick="redirectToAllLocations()">View All Locations</button>
+                </div>
+
+                <div id="allLocationsMap" style="height: 500px; width: 100%; display: none;" class="mb-3"></div>
+
+                <!-- Map Container -->
+                <div id="mapContainer" style="display: none;" class="mb-3">
+                    <h5 class="text-center">Location Map</h5>
+                    <div id="map" style="height: 500px; width: 100%;"></div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-dark table-bordered text-center text-nowrap">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">Date</th>
+                                <th scope="col" class="text-center">Time</th>
+                                <th scope="col" class="text-center">Latitude</th>
+                                <th scope="col" class="text-center">Longitude</th>
+                                <th scope="col" class="text-center">View on Map</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if history %}
+                            {% for record in history %}
+                            <tr>
+                                <td class="text-center">{{ record.date }}</td>
+                                <td class="text-center">{{ record.time }}</td>
+                                <td class="text-center">{{ record.latitude }}</td>
+                                <td class="text-center">{{ record.longitude }}</td>
+                                <td class="text-center">
+                                    <a class="btn btn-info btn-sm" 
+                                       href="{{ url_for('location_map', latitude=record.latitude, longitude=record.longitude) }}">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No location history found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Display Map and Go Back -->
+<script>
+    function redirectToAllLocations() {
+        const selectedDate = document.getElementById('dateFilter').value;
+        if (!selectedDate) {
+            alert("Please select a date.");
+            return;
+        }
+        // Redirect with both phone and selected date
+        window.location.href = `/view_all_locations_history/{{ phone }}?date=${selectedDate}`;
+    }
+
+    function showMap(latitude, longitude) {
+        // Hide the table and show the map container
+        document.querySelector(".table-responsive").style.display = "none";
+        document.getElementById("mapContainer").style.display = "block";
+
+        // Initialize the map with zoom and center
+        const map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: latitude, lng: longitude },
+            zoom: 18,
+        });
+
+        // Add a marker on the map
+        new google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: "Employee Location",
+        });
+
+        // Push the current state to the history
+        history.pushState(null, null, location.href);
+
+        // Handle the browser back button
+        window.onpopstate = function () {
+            // Show the table and hide the map container when going back
+            document.querySelector(".table-responsive").style.display = "block";
+            document.getElementById("mapContainer").style.display = "none";
+        };
+    }
+
+    function viewAllLocations() {
+        // Get the selected date
+        const selectedDate = document.getElementById('dateFilter').value;
+
+        // Get all the location data from the table
+        const rows = document.querySelectorAll("tbody tr");
+        const locations = [];
+
+        rows.forEach(row => {
+            const dateText = row.cells[0].innerText;
+            const time = row.cells[1].innerText;
+            const lat = parseFloat(row.cells[2].innerText);
+            const lng = parseFloat(row.cells[3].innerText);
+
+            // Convert the date from the table to a comparable format (yyyy-mm-dd)
+            const dateParts = dateText.split("-");
+            const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+            // Check if the row date matches the selected date
+            if (formattedDate === selectedDate) {
+                locations.push({ date: formattedDate, time, lat, lng });
+            }
+        });
+
+        // If no locations found, show an alert
+        if (locations.length === 0) {
+            alert("No locations found for the selected date.");
+            return;
+        }
+
+        // Hide the date filter and button
+        document.querySelector(".d-flex").style.display = "none";
+
+        // Show the map and hide the table
+        document.querySelector(".table-responsive").style.display = "none";
+        document.getElementById("allLocationsMap").style.display = "block";
+
+        // Initialize the map
+        const map = new google.maps.Map(document.getElementById("allLocationsMap"), {
+            zoom: 15,
+            center: { lat: locations[0].lat, lng: locations[0].lng },
+        });
+
+        // Add markers for all filtered locations
+        locations.forEach((location, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: `Time: ${location.time}`,
+                label: `${index + 1}`,
+            });
+
+            // Add an info window to display the time when the marker is clicked
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<p><strong>Time:</strong> ${location.time}</p>`,
+            });
+
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
+        });
+
+        // Handle the browser back button
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            // Show the table and the date filter/button, and hide the map container when going back
+            document.querySelector(".table-responsive").style.display = "block";
+            document.getElementById("allLocationsMap").style.display = "none";
+            document.querySelector(".d-flex").style.display = "flex";
+        };
+    }
+
+    // Set today's date as the default date
+    function setTodayDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateFilter').value = today;
+    }
+
+    // Call the function to set the date on page load
+    window.onload = setTodayDate;
+</script>
+
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" async defer></script>
+
+{% endblock %}

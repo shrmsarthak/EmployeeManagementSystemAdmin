@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white p-4">
+                <h4 class="text-center">Add New Unit</h4>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="unit_name" class="form-label">Unit Name</label>
+                        <input type="text" class="form-control" id="unit_name" name="unit_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="latitude" class="form-label">Latitude</label>
+                        <input type="text" class="form-control" id="latitude" name="latitude" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="longitude" class="form-label">Longitude</label>
+                        <input type="text" class="form-control" id="longitude" name="longitude" required>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" onclick="getLocation()" class="btn btn-secondary w-100">
+                            Detect Current Location
+                        </button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add Unit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getLocation() {
+    const apiKey = "AIzaSyBjTYnRgK9kGRtBCGvHsXaho3EZVkqTiWo"; // <-- Replace with your actual API Key
+    const url = `https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`;
+
+    fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.location) {
+            const lat = data.location.lat.toFixed(6);
+            const lng = data.location.lng.toFixed(6);
+            document.getElementById("latitude").value = lat;
+            document.getElementById("longitude").value = lng;
+
+            console.log("Latitude:", lat);
+            console.log("Longitude:", lng);
+        } else {
+            throw new Error("No location returned");
+        }
+    })
+    .catch(error => {
+        console.error("Geolocation API error:", error);
+        alert("Unable to detect location. Please try again.");
+    });
+}
+</script>
+
+{% endblock %}

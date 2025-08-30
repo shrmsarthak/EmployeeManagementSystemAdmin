@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-3 p-md-4 bg-dark text-white">
+                <h4 class="mb-3 text-center">Employee Leaves</h4>
+
+                <!-- Export Button -->
+                <div class="mb-3 text-end">
+                    <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="employeeName" class="form-label">Employee Name</label>
+                        <input type="text" id="nameFilter" class="form-control" placeholder="Filter by Name"
+                            onkeyup="filterTable()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="employeeCode" class="form-label">Employee Code</label>
+                        <input type="text" id="codeFilter" class="form-control" placeholder="Filter by Employee Code"
+                            onkeyup="filterTable()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" id="startDate" class="form-control" onchange="filterTable()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" id="endDate" class="form-control" onchange="filterTable()">
+                    </div>
+                </div>
+
+                <!-- Table with Scrolling -->
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-dark table-bordered text-center text-nowrap"
+                        id="leavesTable">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">Name</th>
+                                <th scope="col" class="text-center">Employee Code</th>
+                                <th scope="col" class="text-center">Leave Applied Date</th>
+                                <th scope="col" class="text-center">Leave Start Date</th>
+                                <th scope="col" class="text-center">Leave End Date</th>
+                                <th scope="col" class="text-center">Leave Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in leaves %}
+                            <tr>
+                                <td class="text-center">{{ record.name }}</td>
+                                <td class="text-center">{{ record.employee_code }}</td>
+                                <td class="text-center">{{ record.date }}</td>
+                                <td class="text-center">{{ record.startdate }}</td>
+                                <td class="text-center">{{ record.enddate }}</td>
+                                <td class="text-center">{{ record.reason }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include XLSX Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+    function exportToExcel() {
+        const table = document.getElementById("leavesTable");
+        const clonedTable = table.cloneNode(true);
+        const rows = clonedTable.getElementsByTagName("tr");
+        
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i].style.display === "none") {
+                rows[i].remove();
+            }
+        }
+
+        
+        
+        const workbook = XLSX.utils.table_to_book(clonedTable, { sheet: "Leaves" });
+
+        // Adjust column widths
+        const worksheet = workbook.Sheets["Leaves"];
+        worksheet["!cols"] = [
+            { wch: 25 }, // Name column width
+            { wch: 20 }, // Employee Code column width
+            { wch: 20 }, // Leave Applied Date column width
+            { wch: 25 }, // Leave Start Date column width
+            { wch: 25 }, // Leave End Date column width
+            { wch: 40 }  // Leave Reason column width
+        ];
+
+            XLSX.writeFile(workbook, "Employee_Leaves.xlsx");
+        }
+
+    function filterTable() {
+        const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+        const codeFilter = document.getElementById('codeFilter').value.toLowerCase();
+        const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+        const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+
+        const table = document.getElementById('leavesTable');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const name = rows[i].getElementsByTagName('td')[0]?.textContent.toLowerCase();
+            const code = rows[i].getElementsByTagName('td')[1]?.textContent.toLowerCase();
+            const startLeaveDate = rows[i].getElementsByTagName('td')[3]?.textContent;
+            const endLeaveDate = rows[i].getElementsByTagName('td')[4]?.textContent;
+
+            let nameMatch = !nameFilter || name.includes(nameFilter);
+            let codeMatch = !codeFilter || code.includes(codeFilter);
+
+            const parseDate = (dateStr) => {
+                const [day, month, year] = dateStr.split('-');
+                return new Date(`${year}-${month}-${day}`);
+            };
+
+            let startLeave = startLeaveDate ? parseDate(startLeaveDate) : null;
+            let endLeave = endLeaveDate ? parseDate(endLeaveDate) : null;
+
+            let dateMatch = true;
+            if (startDate && startLeave) {
+                dateMatch = startLeave >= startDate;
+            }
+            if (endDate && endLeave) {
+                dateMatch = dateMatch && endLeave <= endDate;
+            }
+
+            if (nameMatch && codeMatch && dateMatch) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="text-center">All Locations for Selected Date</h4>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+</div>
+
+<script>
+function initMap() {
+    var map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: { lat: 28.7041, lng: 77.1025 } // Default center (Change dynamically)
+    });
+
+    var locations = {{ locations | tojson }}; // Ensure locations data is passed correctly from Flask
+
+    // Add markers for all locations
+    locations.forEach((location, index) => {
+        var marker = new google.maps.Marker({
+            position: { lat: location.latitude, lng: location.longitude },
+            map: map,
+            title: "Time: " + location.time,
+            label: `${index + 1}`
+        });
+
+        var infoWindow = new google.maps.InfoWindow({
+            content: `<p><strong>Time:</strong> ${location.time}</p>`
+        });
+
+        marker.addListener("click", function() {
+            infoWindow.open(map, marker);
+        });
+    });
+
+    // Set map center to first location (if available)
+    if (locations.length > 0) {
+        map.setCenter({ lat: locations[0].latitude, lng: locations[0].longitude });
+    }
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" async defer></script>
+
+{% endblock %}
